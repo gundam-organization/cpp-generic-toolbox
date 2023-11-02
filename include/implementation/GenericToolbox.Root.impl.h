@@ -831,7 +831,27 @@ namespace GenericToolbox {
       thrownParListOut_.at(iPar) = thrownParVec[iPar];
     }
   }
-  inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
+  inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, std::vector<double>& weights){
+        if( choleskyCovMatrix_ == nullptr ) return;
+        if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
+            thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
+        }
+        if( weights.size() != choleskyCovMatrix_->GetNcols() ){
+            weights.resize(choleskyCovMatrix_->GetNcols(), 0);
+        }
+
+        TVectorD thrownParVec(choleskyCovMatrix_->GetNcols());
+        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+            thrownParVec[iPar] = gRandom->Gaus();
+            weights.at(iPar) = thrownParVec[iPar]*thrownParVec[iPar];
+        }
+        thrownParVec *= (*choleskyCovMatrix_);
+        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+            thrownParListOut_.at(iPar) = thrownParVec[iPar];
+        }
+    }
+
+    inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
     if( v_ == nullptr ) return nullptr;
     if( w_ == nullptr ) w_ = v_;
     auto* out = new TMatrixD(v_->GetNrows(), w_->GetNrows());
