@@ -850,6 +850,31 @@ namespace GenericToolbox {
             thrownParListOut_.at(iPar) = thrownParVec[iPar];
         }
     }
+    inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, double& totalWeight){
+        if( choleskyCovMatrix_ == nullptr ) return;
+        if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
+            thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
+        }
+        totalWeight = 1.;
+        double alpha = 0.05;
+        TVectorD thrownParVec(choleskyCovMatrix_->GetNcols());
+        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+            // choice
+            if( gRandom->Uniform(0,1) < alpha ){
+                thrownParVec[iPar] = gRandom->Uniform(-3,3);
+                totalWeight *= alpha;
+                totalWeight *= 1./6.;
+            }else{
+                thrownParVec[iPar] = gRandom->Gaus();
+                totalWeight *= (1-alpha);
+                totalWeight *= thrownParVec[iPar]*thrownParVec[iPar];
+            }
+        }
+        thrownParVec *= (*choleskyCovMatrix_);
+        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+            thrownParListOut_.at(iPar) = thrownParVec[iPar];
+        }
+    }
 
     inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
     if( v_ == nullptr ) return nullptr;
@@ -862,6 +887,7 @@ namespace GenericToolbox {
     }
     return out;
   }
+
   template<typename T> inline void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
     if( m_ == nullptr ) return;
     for( int iRow = 0 ; iRow < m_->GetNrows() ; iRow++ ){
