@@ -861,7 +861,7 @@ namespace GenericToolbox {
         for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
             // choice
             if( gRandom->Uniform(0,1) < alpha ){
-                thrownParVec[iPar] = gRandom->Uniform(-3,3);
+                thrownParVec[iPar] = gRandom->Uniform(-5,5);
                 totalWeight *= alpha;
                 totalWeight *= 1./6.;
             }else{
