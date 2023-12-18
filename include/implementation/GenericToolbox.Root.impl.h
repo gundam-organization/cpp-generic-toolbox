@@ -851,7 +851,8 @@ namespace GenericToolbox {
         }
     }
 
-    inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, double& totalWeight){
+
+    inline void throwCorrelatedParametersPedestal(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, double& totalWeight){
         if( choleskyCovMatrix_ == nullptr ) return;
         if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
             thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
