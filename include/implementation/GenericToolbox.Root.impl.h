@@ -831,7 +831,13 @@ namespace GenericToolbox {
       thrownParListOut_.at(iPar) = thrownParVec[iPar];
     }
   }
-  inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, std::vector<double>& weights){
+
+  inline void throwCorrelatedParameters(  TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, std::vector<double>& weights,
+                                            double pedestalEntity, double pedestalLeftEdge, double pedestalRightEdge
+                                          ){
+        double pi = TMath::Pi();
+        double NormalizingFactor = 1.0 / (TMath::Sqrt(2.0 * pi));
+        double pedestalRange = pedestalRightEdge - pedestalLeftEdge;
         if( choleskyCovMatrix_ == nullptr ) return;
         if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
             thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
@@ -841,43 +847,45 @@ namespace GenericToolbox {
         }
 
         TVectorD thrownParVec(choleskyCovMatrix_->GetNcols());
-        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
-            thrownParVec[iPar] = gRandom->Gaus();
-            weights.at(iPar) = thrownParVec[iPar]*thrownParVec[iPar];
-        }
-        thrownParVec *= (*choleskyCovMatrix_);
-        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
-            thrownParListOut_.at(iPar) = thrownParVec[iPar];
-        }
-    }
-
-    inline void throwCorrelatedParametersPedestal(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, double& totalWeight){
-        if( choleskyCovMatrix_ == nullptr ) return;
-        if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
-            thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
-        }
-        totalWeight = 1.;
-        double alpha = 0.05;
-        TVectorD thrownParVec(choleskyCovMatrix_->GetNcols());
-        for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
-            // choice
-            if( gRandom->Uniform(0,1) < alpha ){
-                thrownParVec[iPar] = gRandom->Uniform(-5,5);
-                totalWeight *= alpha;
-                totalWeight *= 1./6.;
-            }else{
+        double choice = gRandom->Uniform(0,1);
+        if (choice>pedestalEntity) {
+            for (int iPar = 0; iPar < choleskyCovMatrix_->GetNcols(); iPar++) {
                 thrownParVec[iPar] = gRandom->Gaus();
-                totalWeight *= (1-alpha);
-                totalWeight *= thrownParVec[iPar]*thrownParVec[iPar];
+                if (thrownParVec[iPar]>pedestalLeftEdge and thrownParVec[iPar]<pedestalRightEdge){
+                    weights.at(iPar) = -TMath::Log(
+                            pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
+                            );
+                }else{
+                    weights.at(iPar) = -TMath::Log(
+                            (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
+                            );
+                }
+            }
+        }else{
+            for (int iPar = 0; iPar < choleskyCovMatrix_->GetNcols(); iPar++) {
+                thrownParVec[iPar] = gRandom->Uniform(pedestalLeftEdge, pedestalRightEdge);
+                if (thrownParVec[iPar]>pedestalLeftEdge and thrownParVec[iPar]<pedestalRightEdge){
+                    weights.at(iPar) = -TMath::Log(
+                            pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
+                    );
+                }else{
+                    weights.at(iPar) = -TMath::Log(
+                            (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
+                    );
+                }
             }
         }
         thrownParVec *= (*choleskyCovMatrix_);
         for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
             thrownParListOut_.at(iPar) = thrownParVec[iPar];
         }
-    }
+  }
 
-    inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
+  inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, std::vector<double>& weights){
+      throwCorrelatedParameters(choleskyCovMatrix_, thrownParListOut_, weights, 0, 0, 0);
+  }
+
+  inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
     if( v_ == nullptr ) return nullptr;
     if( w_ == nullptr ) w_ = v_;
     auto* out = new TMatrixD(v_->GetNrows(), w_->GetNrows());
