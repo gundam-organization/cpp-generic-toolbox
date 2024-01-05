@@ -855,24 +855,22 @@ namespace GenericToolbox {
                     weights.at(iPar) = -TMath::Log(
                             pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                             );
+                    std::cout<<"g. in range, w= "<<weights.at(iPar)<<std::endl;
                 }else{
                     weights.at(iPar) = -TMath::Log(
                             (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                             );
+                    std::cout<<"g. out of range, w= "<<weights.at(iPar)<<std::endl;
                 }
             }
         }else{
             for (int iPar = 0; iPar < choleskyCovMatrix_->GetNcols(); iPar++) {
                 thrownParVec[iPar] = gRandom->Uniform(pedestalLeftEdge, pedestalRightEdge);
-                if (thrownParVec[iPar]>pedestalLeftEdge and thrownParVec[iPar]<pedestalRightEdge){
                     weights.at(iPar) = -TMath::Log(
                             pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                     );
-                }else{
-                    weights.at(iPar) = -TMath::Log(
-                            (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
-                    );
-                }
+                    std::cout<<"P. in range, w= "<<weights.at(iPar)<<std::endl;
+
             }
         }
         thrownParVec *= (*choleskyCovMatrix_);
