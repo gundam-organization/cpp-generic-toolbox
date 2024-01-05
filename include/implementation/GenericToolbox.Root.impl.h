@@ -835,6 +835,8 @@ namespace GenericToolbox {
   inline void throwCorrelatedParameters(  TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_, std::vector<double>& weights,
                                             double pedestalEntity, double pedestalLeftEdge, double pedestalRightEdge
                                           ){
+
+        std::ofstream outputFile("InfoThrows.txt");
         double pi = TMath::Pi();
         double NormalizingFactor = 1.0 / (TMath::Sqrt(2.0 * pi));
         double pedestalRange = pedestalRightEdge - pedestalLeftEdge;
@@ -855,12 +857,12 @@ namespace GenericToolbox {
                     weights.at(iPar) = -TMath::Log(
                             pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                             );
-                    std::cout<<"g. in range, w= "<<weights.at(iPar)<<std::endl;
+                    outputFile<<"g. in range, w= "<<weights.at(iPar)<<std::endl;
                 }else{
                     weights.at(iPar) = -TMath::Log(
                             (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                             );
-                    std::cout<<"g. out of range, w= "<<weights.at(iPar)<<std::endl;
+                    outputFile<<"g. out of range, w= "<<weights.at(iPar)<<std::endl;
                 }
             }
         }else{
@@ -869,7 +871,7 @@ namespace GenericToolbox {
                     weights.at(iPar) = -TMath::Log(
                             pedestalEntity*1.0/pedestalRange + (1.0-pedestalEntity) * NormalizingFactor * TMath::Exp(-0.500 * thrownParVec[iPar] * thrownParVec[iPar])
                     );
-                    std::cout<<"P. in range, w= "<<weights.at(iPar)<<std::endl;
+                    outputFile<<"P. in range, w= "<<weights.at(iPar)<<std::endl;
 
             }
         }
