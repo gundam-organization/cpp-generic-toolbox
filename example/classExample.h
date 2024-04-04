@@ -6,16 +6,18 @@
 #define CPP_GENERIC_TOOLBOX_CLASSEXAMPLE_H
 
 #include <iostream>
-#include <GenericToolbox.h>
 
-ENUM_EXPANDER(
-    MyEnum, 0,
-    Case0,
-    Case1, // here is a comment
-    Case2 ,
-    Case3 = 3,
-    Case4,Case5
-    )
+#define ENUM_NAME MyEnum
+#define ENUM_TYPE unsigned int
+#define ENUM_OVERFLOW ENUM_FIELD(BadValue, 0xFFFF)
+#define ENUM_FIELDS \
+  ENUM_FIELD(Case0, 0) \
+  ENUM_FIELD(Case1)    \
+  ENUM_FIELD(Case2)    \
+  ENUM_FIELD(Case33, 33)    \
+  ENUM_FIELD(Case34)    \
+  ENUM_FIELD(Case35)
+#include "GenericToolbox.MakeEnum.h"
 
 class ClassExample{
 
