@@ -427,7 +427,7 @@ namespace GenericToolbox{
     [[nodiscard]] bool isAboveMax(double val_) const{ return (hasUpperBound() and val_ > max); }
     [[nodiscard]] bool isInBounds(double val_) const{
       // both bounds are inclusive [min, max]
-      if( isBellowMin(val_) ){ return false; }
+      if( isBelowMin(val_) ){ return false; }
       if( isAboveMax(val_) ){ return false; }
       return true;
     }
