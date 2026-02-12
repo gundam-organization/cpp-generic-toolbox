@@ -83,61 +83,61 @@ namespace GenericToolbox{
     class RowView;
     class RowBuilder;
 
-    CSRVector();
+    CSRVector() = default;
 
-    void reserve(size_t nEntries);
-    void reserve_data(size_t nTotalValues);
-    void clear();
+    void reserve(size_t nEntries){ _offsets_.reserve(nEntries + 1); }
+    void reserve_data(size_t nTotalValues){ _data_.reserve(nTotalValues); }
+    void clear(){ _offsets_.clear(); _data_.clear(); _openRow_ = false; }
 
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const{ return _offsets_.empty() ? 0 : _offsets_.size() - 1; }
+    [[nodiscard]] bool empty() const { return size() == 0; }
 
     RowBuilder emplace_back();
     void push_back(const std::vector<value_type>& row);
 
     RowView operator[](size_t iEntry) const;
 
-    const std::vector<offset_type>& offsets() const;
-    const std::vector<value_type>& data() const;
+    const std::vector<offset_type>& offsets() const { return _offsets_; }
+    const std::vector<value_type>& data() const { return _data_; }
 
     void append(const CSRVector& other);
     void append_move(CSRVector&& other);
     static CSRVector concat(const std::vector<CSRVector>& parts);
 
   private:
-    std::vector<offset_type> offsets_;
-    std::vector<value_type> data_;
-    bool openRow_ = false;
+    std::vector<offset_type> _offsets_;
+    std::vector<value_type> _data_;
+    bool _openRow_ = false;
   };
 
   template <typename T, typename OffsetT>
   class CSRVector<T, OffsetT>::RowView {
   public:
-    RowView(const value_type* ptr, size_t n);
+    RowView(const value_type* ptr, size_t n): _ptr_(ptr), _n_(n) {}
 
     const value_type& operator[](size_t k) const;
 
-    const value_type* data() const;
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] bool empty() const;
+    const value_type* data() const { return _ptr_; }
+    [[nodiscard]] size_t size() const  { return _n_; }
+    [[nodiscard]] bool empty() const { return _n_ == 0; }
 
-    const value_type* begin() const;
-    const value_type* end() const;
+    const value_type* begin() const { return _ptr_; }
+    const value_type* end() const { return _ptr_ + _n_; }
 
   private:
-    const value_type* ptr_;
-    size_t n_;
+    const value_type* _ptr_;
+    size_t _n_;
   };
 
   template <typename T, typename OffsetT>
   class CSRVector<T, OffsetT>::RowBuilder {
   public:
-    RowBuilder(CSRVector* owner, size_t rowIndex);
+    RowBuilder(CSRVector* owner, size_t rowIndex) : _owner_(owner), _rowIndex_(rowIndex) {}
     RowBuilder(const RowBuilder&) = delete;
     RowBuilder& operator=(const RowBuilder&) = delete;
     RowBuilder(RowBuilder&& other) noexcept;
     RowBuilder& operator=(RowBuilder&& other) noexcept;
-    ~RowBuilder();
+    ~RowBuilder(){ close_if_needed(); }
 
     template <class... Args>
     value_type& emplace_back(Args&&... args);
@@ -145,11 +145,11 @@ namespace GenericToolbox{
     void close();
 
   private:
-    void close_if_needed();
+    void close_if_needed(){ if (_owner_ && _open_) close(); }
 
-    CSRVector* owner_;
-    size_t rowIndex_;
-    bool open_ = true;
+    CSRVector* _owner_;
+    size_t _rowIndex_;
+    bool _open_ = true;
   };
 
 
@@ -365,50 +365,19 @@ namespace GenericToolbox {
   }
 
   /* ================= CSRVector ================= */
-
-  template <typename T, typename OffsetT>
-  CSRVector<T, OffsetT>::CSRVector() = default;
-
-  template <typename T, typename OffsetT>
-  void CSRVector<T, OffsetT>::reserve(size_t nEntries) {
-    offsets_.reserve(nEntries + 1);
-  }
-
-  template <typename T, typename OffsetT>
-  void CSRVector<T, OffsetT>::reserve_data(size_t nTotalValues) {
-    data_.reserve(nTotalValues);
-  }
-
-  template <typename T, typename OffsetT>
-  void CSRVector<T, OffsetT>::clear() {
-    offsets_.clear();
-    data_.clear();
-    openRow_ = false;
-  }
-
-  template <typename T, typename OffsetT>
-  size_t CSRVector<T, OffsetT>::size() const {
-    return offsets_.empty() ? 0 : offsets_.size() - 1;
-  }
-
-  template <typename T, typename OffsetT>
-  bool CSRVector<T, OffsetT>::empty() const {
-    return size() == 0;
-  }
-
   template <typename T, typename OffsetT>
   typename CSRVector<T, OffsetT>::RowBuilder
   CSRVector<T, OffsetT>::emplace_back() {
 
-    if (openRow_)
+    if( _openRow_ ){
       throw std::logic_error("CSRVector: only one open row allowed");
+    }
 
-    if (offsets_.empty())
-      offsets_.push_back(0);
+    if (_offsets_.empty()) { _offsets_.push_back(0); }
 
-    size_t rowIndex = offsets_.size() - 1;
-    offsets_.push_back(static_cast<offset_type>(data_.size()));
-    openRow_ = true;
+    size_t rowIndex = _offsets_.size() - 1;
+    _offsets_.push_back(static_cast<offset_type>(_data_.size()));
+    _openRow_ = true;
 
     return RowBuilder(this, rowIndex);
   }
@@ -427,73 +396,65 @@ namespace GenericToolbox {
     if (iEntry >= size())
       throw std::out_of_range("CSRVector: row index out of range");
 
-    auto b = static_cast<size_t>(offsets_[iEntry]);
-    auto e = static_cast<size_t>(offsets_[iEntry + 1]);
-    return RowView(data_.data() + b, e - b);
+    auto b = static_cast<size_t>(_offsets_[iEntry]);
+    auto e = static_cast<size_t>(_offsets_[iEntry + 1]);
+    return RowView(_data_.data() + b, e - b);
   }
-
-  template <typename T, typename OffsetT>
-  const std::vector<typename CSRVector<T, OffsetT>::offset_type>&
-  CSRVector<T, OffsetT>::offsets() const { return offsets_; }
-
-  template <typename T, typename OffsetT>
-  const std::vector<typename CSRVector<T, OffsetT>::value_type>&
-  CSRVector<T, OffsetT>::data() const { return data_; }
 
   template <typename T, typename OffsetT>
   void CSRVector<T, OffsetT>::append(const CSRVector& other) {
 
-    if (openRow_ || other.openRow_)
+    if (_openRow_ || other._openRow_)
       throw std::logic_error("CSRVector::append: cannot append with an open row");
 
     if (other.empty()) return;
 
     if (this->empty()) {
-      offsets_ = other.offsets_;
-      data_ = other.data_;
+      _offsets_ = other._offsets_;
+      _data_ = other._data_;
       return;
     }
 
-    const size_t baseData = data_.size();
+    const size_t baseData = _data_.size();
     const auto base = static_cast<offset_type>(baseData);
 
-    data_.insert(data_.end(), other.data_.begin(), other.data_.end());
+    _data_.insert(_data_.end(), other._data_.begin(), other._data_.end());
 
-    const size_t oldOffsetSize = offsets_.size();
-    offsets_.resize(oldOffsetSize + other.size());
+    const size_t oldOffsetSize = _offsets_.size();
+    _offsets_.resize(oldOffsetSize + other.size());
 
     for (size_t i = 0; i < other.size(); ++i) {
-      offsets_[oldOffsetSize + i] = base + other.offsets_[i + 1];
+      _offsets_[oldOffsetSize + i] = base + other._offsets_[i + 1];
     }
   }
 
   template <typename T, typename OffsetT>
   void CSRVector<T, OffsetT>::append_move(CSRVector&& other) {
 
-    if (openRow_ || other.openRow_)
+    if (_openRow_ || other._openRow_)
       throw std::logic_error("CSRVector::append_move: cannot append with an open row");
 
     if (other.empty()) return;
 
     if (this->empty()) {
-      offsets_ = std::move(other.offsets_);
-      data_ = std::move(other.data_);
-      other.openRow_ = false;
+      _offsets_ = std::move(other._offsets_);
+      _data_ = std::move(other._data_);
+      other._openRow_ = false;
       return;
     }
 
-    const size_t baseData = data_.size();
+    const size_t baseData = _data_.size();
     const auto base = static_cast<offset_type>(baseData);
 
     // Move elements one by one (works for any T, but still O(n))
-    data_.reserve(data_.size() + other.data_.size());
-    for (auto& v : other.data_) data_.emplace_back(std::move(v));
+    _data_.reserve(_data_.size() + other._data_.size());
+    for (auto& v : other._data_) _data_.emplace_back(std::move(v));
 
-    const size_t oldOffsetSize = offsets_.size();
-    offsets_.resize(oldOffsetSize + other.size());
+    const size_t oldOffsetSize = _offsets_.size();
+    _offsets_.resize(oldOffsetSize + other.size());
 
     for (size_t i = 0; i < other.size(); ++i) {
-      offsets_[oldOffsetSize + i] = base + other.offsets_[i + 1];
+      _offsets_[oldOffsetSize + i] = base + other._offsets_[i + 1];
     }
 
     other.clear();
@@ -508,9 +469,9 @@ namespace GenericToolbox {
     size_t totalEntries = 0;
     size_t totalData = 0;
     for (const auto& p : parts) {
-      if (p.openRow_) throw std::logic_error("CSRVector::concat: part has an open row");
+      if (p._openRow_) throw std::logic_error("CSRVector::concat: part has an open row");
       totalEntries += p.size();
-      totalData += p.data_.size();
+      totalData += p._data_.size();
     }
 
     out.reserve(totalEntries);
@@ -522,51 +483,21 @@ namespace GenericToolbox {
   }
 
   /* ================= RowView ================= */
-
-  template <typename T, typename OffsetT>
-  CSRVector<T, OffsetT>::RowView::RowView(const value_type* ptr, size_t n)
-    : ptr_(ptr), n_(n) {}
-
   template <typename T, typename OffsetT>
   const typename CSRVector<T, OffsetT>::value_type&
   CSRVector<T, OffsetT>::RowView::operator[](size_t k) const {
-    if (k >= n_)
-      throw std::out_of_range("CSRVector: column index out of range");
-    return ptr_[k];
+    if (k >= _n_){ throw std::out_of_range("CSRVector: column index out of range"); }
+    return _ptr_[k];
   }
 
-  template <typename T, typename OffsetT>
-  const typename CSRVector<T, OffsetT>::value_type*
-  CSRVector<T, OffsetT>::RowView::data() const { return ptr_; }
-
-  template <typename T, typename OffsetT>
-  size_t CSRVector<T, OffsetT>::RowView::size() const { return n_; }
-
-  template <typename T, typename OffsetT>
-  bool CSRVector<T, OffsetT>::RowView::empty() const { return n_ == 0; }
-
-  template <typename T, typename OffsetT>
-  const typename CSRVector<T, OffsetT>::value_type*
-  CSRVector<T, OffsetT>::RowView::begin() const { return ptr_; }
-
-  template <typename T, typename OffsetT>
-  const typename CSRVector<T, OffsetT>::value_type*
-  CSRVector<T, OffsetT>::RowView::end() const { return ptr_ + n_; }
-
   /* ================= RowBuilder ================= */
-
-  template <typename T, typename OffsetT>
-  CSRVector<T, OffsetT>::RowBuilder::RowBuilder(
-    CSRVector* owner, size_t rowIndex)
-    : owner_(owner), rowIndex_(rowIndex) {}
-
   template <typename T, typename OffsetT>
   CSRVector<T, OffsetT>::RowBuilder::RowBuilder(RowBuilder&& other) noexcept {
-    owner_ = other.owner_;
-    rowIndex_ = other.rowIndex_;
-    open_ = other.open_;
-    other.owner_ = nullptr;
-    other.open_ = false;
+    _owner_ = other._owner_;
+    _rowIndex_ = other._rowIndex_;
+    _open_ = other._open_;
+    other._owner_ = nullptr;
+    other._open_ = false;
   }
 
   template <typename T, typename OffsetT>
@@ -574,18 +505,13 @@ namespace GenericToolbox {
   CSRVector<T, OffsetT>::RowBuilder::operator=(RowBuilder&& other) noexcept {
     if (this != &other) {
       close_if_needed();
-      owner_ = other.owner_;
-      rowIndex_ = other.rowIndex_;
-      open_ = other.open_;
-      other.owner_ = nullptr;
-      other.open_ = false;
+      _owner_ = other._owner_;
+      _rowIndex_ = other._rowIndex_;
+      _open_ = other._open_;
+      other._owner_ = nullptr;
+      other._open_ = false;
     }
     return *this;
-  }
-
-  template <typename T, typename OffsetT>
-  CSRVector<T, OffsetT>::RowBuilder::~RowBuilder() {
-    close_if_needed();
   }
 
   template <typename T, typename OffsetT>
@@ -593,31 +519,25 @@ namespace GenericToolbox {
   typename CSRVector<T, OffsetT>::value_type&
   CSRVector<T, OffsetT>::RowBuilder::emplace_back(Args&&... args) {
 
-    if (!owner_ || !open_)
+    if (!_owner_ || !_open_)
       throw std::logic_error("CSRVector: cannot emplace_back on closed row");
 
-    owner_->data_.emplace_back(std::forward<Args>(args)...);
-    return owner_->data_.back();
+    _owner_->_data_.emplace_back(std::forward<Args>(args)...);
+    return _owner_->_data_.back();
   }
 
   template <typename T, typename OffsetT>
   void CSRVector<T, OffsetT>::RowBuilder::close() {
 
-    if (!owner_ || !open_)
+    if (!_owner_ || !_open_)
       throw std::logic_error("CSRVector: row already closed");
 
-    owner_->offsets_[rowIndex_ + 1] =
-      static_cast<offset_type>(owner_->data_.size());
+    _owner_->_offsets_[_rowIndex_ + 1] =
+      static_cast<offset_type>(_owner_->_data_.size());
 
-    open_ = false;
-    owner_->openRow_ = false;
+    _open_ = false;
+    _owner_->_openRow_ = false;
   }
-
-  template <typename T, typename OffsetT>
-  void CSRVector<T, OffsetT>::RowBuilder::close_if_needed() {
-    if (owner_ && open_) close();
-  }
-
 
 }
 
