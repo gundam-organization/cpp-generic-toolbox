@@ -73,6 +73,42 @@ namespace GenericToolbox{
   template <typename T, typename OffsetT = uint32_t>
   class CSRVector {
 
+    /*
+      CSRVector<T>
+
+      Lightweight replacement for std::vector<std::vector<T>> using
+      CSR (Compressed Sparse Row) layout.
+
+      Storage model:
+        - _data_    : flattened contiguous storage of all elements
+        - _offsets_ : row start indices (size = nRows + 1)
+
+      Access:
+        a[i][k]         -> O(1)
+        a[i].size()     -> O(1)
+        iteration       -> contiguous, cache-friendly
+
+      Construction model:
+        - Rows must be built sequentially.
+        - Only one row can be open at a time.
+        - Rows become immutable once closed.
+
+      Advantages over vector<vector<T>>:
+        - No per-row std::vector overhead
+        - Single contiguous allocation for data
+        - Much lower memory footprint
+        - Better cache locality
+
+      Typical use case:
+        - Build-once / read-many structures
+        - Large number of rows
+        - Small average row size (often 1 element)
+
+      Not suitable if:
+        - Random row mutation after construction is required.
+    */
+
+
     static_assert(std::is_integral<OffsetT>::value, "OffsetT must be integral");
     static_assert(std::is_unsigned<OffsetT>::value, "OffsetT must be unsigned");
 
