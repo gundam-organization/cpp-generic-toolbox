@@ -47,7 +47,7 @@ namespace GenericToolbox { namespace Yaml {
       throw std::runtime_error(keyName_ + " does not exist");
     }
 
-    return yamlConfig_[keyName_].template as<T>();
+    return yamlConfig_[keyName_].as<T>();
   }
   template<class T> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const T& defaultValue_) -> T{
     try{
@@ -65,7 +65,7 @@ namespace GenericToolbox { namespace Yaml {
     }
 
     for( const auto& yamlEntry : yamlConfig_ ){
-      if(yamlEntry[keyName_] and yamlEntry[keyName_].template as<T>() == keyValue_ ){
+      if(yamlEntry[keyName_] and yamlEntry[keyName_].as<T>() == keyValue_ ){
         return YAML::Node(yamlEntry);
       }
     }

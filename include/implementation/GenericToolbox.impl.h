@@ -57,16 +57,16 @@ extern char* __progname;
 namespace GenericToolbox {
 
   template<typename T, typename TT> inline static std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
-    return ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
+    return ProgressBar::gProgressBar.generateProgressBarStr(iCurrent_, iTotal_, title_);
   }
   template<typename T, typename TT> inline static bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
-    return ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_);
+    return ProgressBar::gProgressBar.showProgressBar(iCurrent_, iTotal_);
   }
   template<typename T, typename TT> inline static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    return ProgressBar::gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
   }
   template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    return ProgressBar::gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
   }
   inline static void resetLastDisplayedValue(){
     ProgressBar::gProgressBar.resetLastDisplayedValue();
@@ -240,7 +240,7 @@ namespace GenericToolbox {
   }
   template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
-      vector_.template emplace_back(element_);
+      vector_.emplace_back(element_);
     }
   }
   static inline void addIfNotInVector(const char* element_, std::vector<std::string> &vector_){

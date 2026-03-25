@@ -176,7 +176,7 @@ namespace GenericToolbox { namespace Json {
     if( jsonEntry == jsonConfig_.end() ){
       throw std::runtime_error("Could not find json entry: " + keyName_ + ":\n" + jsonConfig_.dump());
     }
-    return jsonEntry->template get<T>();
+    return jsonEntry->get<T>();
   }
   template<class T> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyNames_) -> T{
     for( auto& keyName : keyNames_){
@@ -215,7 +215,7 @@ namespace GenericToolbox { namespace Json {
     for( auto& keyPathElement : keyPathElements ){
       elm = GenericToolbox::Json::fetchValue<nlohmann::json>(elm, keyPathElement);
     }
-    return elm.template get<T>();
+    return elm.get<T>();
   }
   template<class T> inline nlohmann::json fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const T& keyValue_){
 

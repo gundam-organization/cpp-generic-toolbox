@@ -443,7 +443,7 @@ namespace GenericToolbox {
     auto ls = GenericToolbox::lsTDirectory(directory_, templateClass->GetName());
     std::vector<T*> output; output.reserve(ls.size());
     for( auto& entry : ls ){
-      output.template emplace_back( directory_->Get<T>(entry.c_str()) );
+      output.emplace_back( directory_->Get<T>(entry.c_str()) );
       if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
     }
 

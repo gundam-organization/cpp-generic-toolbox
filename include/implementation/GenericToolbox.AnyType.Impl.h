@@ -14,7 +14,7 @@ namespace GenericToolbox{
   }
   template<typename ValueType> inline AnyType::AnyType(const ValueType& value_){
     this->reset();
-    this->template setValue(value_);
+    this->setValue(value_);
   }
   inline AnyType::~AnyType() { this->reset(); }
 
