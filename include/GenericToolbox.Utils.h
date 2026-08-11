@@ -1255,7 +1255,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
       // otherwise it's a problem
       throw std::runtime_error("AnyType value type mismatch: stored: " + std::string(getType().name()) + ", requested: " + typeid(RequestedType).name());
     }
-    return static_cast<const VariableHolder<const RequestedType> *>(_varPtr_.get())->_variable_;
+    return static_cast<const VariableHolder<RequestedType> *>(_varPtr_.get())->_variable_;
   }
   inline double AnyType::getValueAsDouble() const{
     return _varPtr_->getVariableAsDouble();
