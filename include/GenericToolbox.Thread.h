@@ -279,7 +279,7 @@ namespace GenericToolbox{
     for( auto& worker : _workerList_ ){ worker.isEngaged.setValue( true ); }
 
     // wait for all to close
-    for( auto& worker : _workerList_ ){ worker.thread.get(); }
+    for( auto& worker : _workerList_ ){ worker.thread->get(); }
 
     // an empty worker list is saying the threads are not running. So clearing it
     _workerList_.clear();
