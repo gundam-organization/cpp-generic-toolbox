@@ -497,7 +497,7 @@ namespace GenericToolbox{
       [[nodiscard]] std::vector<size_t> getPadding() const{
         std::vector<size_t> output(nCols, 0);
         for( auto& line : tableLineList ) {
-          for( size_t iCol = 0; iCol < nCols; ++iCol ) {
+          for( int iCol = 0; iCol < nCols; ++iCol ) {
             output[iCol] = std::max(output[iCol], getPrintSize(line.columnList[iCol]));
           }
         }
@@ -520,7 +520,6 @@ namespace GenericToolbox{
     CPP_GENERIC_TOOLBOX_UTILS_INLINE TablePrinter &operator<<( Action action_ );
 
   };
-
 
 }
 

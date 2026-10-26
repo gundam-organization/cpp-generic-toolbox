@@ -186,6 +186,7 @@ namespace GenericToolbox{
   CPP_GENERIC_TOOLBOX_ROOT_INLINE TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false, TVectorD* meanValueLeafList_ = nullptr);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::string generateCleanBranchName(const std::string& name_);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_);
+  CPP_GENERIC_TOOLBOX_ROOT_INLINE std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_);
 
   //! Matrix Tools
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");
@@ -477,8 +478,36 @@ namespace GenericToolbox {
   CPP_GENERIC_TOOLBOX_ROOT_INLINE TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_, TVectorD* meanValueLeafList_);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::string generateCleanBranchName(const std::string& name_);
 
-  CPP_GENERIC_TOOLBOX_ROOT_INLINE void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_);
+  CPP_GENERIC_TOOLBOX_ROOT_INLINE void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_){
+//    if( tree1_ == nullptr ) throw std::runtime_error("tree1_ is nullptr");
+//    if( tree2_ == nullptr ) throw std::runtime_error("tree2_ is nullptr");
+//    if( outDir_ == nullptr ) throw std::runtime_error("outDir_ is nullptr");
+//
+////    TTree* outCompTree{nullptr};
+//
+//    auto* prevDir = getCurrentTDirectory();
+//    outDir_->cd();
+//
+////    outCompTree = new TTree("outCompTree", "outCompTree");
+//
+//    ((TBranch*) tree1_->GetListOfBranches()->At(0))->GetAddress();
+//
+//    prevDir->cd();
+  }
+  CPP_GENERIC_TOOLBOX_ROOT_INLINE std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_){
+    if(branch_==nullptr){ return {}; }
 
+    std::string title = branch_->GetTitle(); // "array[4][32]/I"
+    std::regex dim_regex(R"(\[(\d+)\])");
+    std::smatch match;
+    std::vector<size_t> dims;
+
+    for(std::sregex_iterator it(title.begin(), title.end(), dim_regex), end; it != end; ++it){
+      dims.emplace_back(std::stoi((*it)[1]));
+    }
+
+    return dims;
+  }
 }
 
 //! Matrix Tools
