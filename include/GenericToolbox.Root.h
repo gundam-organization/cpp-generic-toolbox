@@ -185,7 +185,6 @@ namespace GenericToolbox{
   CPP_GENERIC_TOOLBOX_ROOT_INLINE TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_ = false);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false, TVectorD* meanValueLeafList_ = nullptr);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::string generateCleanBranchName(const std::string& name_);
-  CPP_GENERIC_TOOLBOX_ROOT_INLINE void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_);
 
   //! Matrix Tools
@@ -478,22 +477,6 @@ namespace GenericToolbox {
   CPP_GENERIC_TOOLBOX_ROOT_INLINE TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_, TVectorD* meanValueLeafList_);
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::string generateCleanBranchName(const std::string& name_);
 
-  CPP_GENERIC_TOOLBOX_ROOT_INLINE void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_){
-//    if( tree1_ == nullptr ) throw std::runtime_error("tree1_ is nullptr");
-//    if( tree2_ == nullptr ) throw std::runtime_error("tree2_ is nullptr");
-//    if( outDir_ == nullptr ) throw std::runtime_error("outDir_ is nullptr");
-//
-////    TTree* outCompTree{nullptr};
-//
-//    auto* prevDir = getCurrentTDirectory();
-//    outDir_->cd();
-//
-////    outCompTree = new TTree("outCompTree", "outCompTree");
-//
-//    ((TBranch*) tree1_->GetListOfBranches()->At(0))->GetAddress();
-//
-//    prevDir->cd();
-  }
   CPP_GENERIC_TOOLBOX_ROOT_INLINE std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_){
     if(branch_==nullptr){ return {}; }
 
