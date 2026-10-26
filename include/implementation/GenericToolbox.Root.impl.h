@@ -674,6 +674,21 @@ CPP_GENERIC_TOOLBOX_ROOT_INLINE std::string generateCleanBranchName(const std::s
     return generateCleanFileName(name_);
   }
 
+CPP_GENERIC_TOOLBOX_ROOT_INLINE std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_){
+    if(branch_==nullptr){ return {}; }
+
+    std::string title = branch_->GetTitle(); // "array[4][32]/I"
+    std::regex dim_regex(R"(\[(\d+)\])");
+    std::smatch match;
+    std::vector<size_t> dims;
+
+    for(std::sregex_iterator it(title.begin(), title.end(), dim_regex), end; it != end; ++it){
+      dims.emplace_back(std::stoi((*it)[1]));
+    }
+
+    return dims;
+  }
+
 CPP_GENERIC_TOOLBOX_ROOT_INLINE std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_) {
     std::map<std::string, TMatrixD *> results_handler;
 
