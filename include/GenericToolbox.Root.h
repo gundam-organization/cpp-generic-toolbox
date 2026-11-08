@@ -368,16 +368,30 @@ namespace GenericToolbox {
     TParameter<T> out(saveName_.c_str(), objToSave_);
     writeInTFile(dir_, (TObject*) &out);
   }
+  struct RootObjectPath{
+    std::string filePath;
+    std::string objectPath;
+    bool hasObjectPath{false};
+  };
+
+  // Only .root: separates the file from its contents; preserve URL schemes,
+  // ports and double slashes, and leave any tree:branch suffix to the caller.
+  inline RootObjectPath parseRootObjectPath(const std::string& path_){
+    const auto separator = path_.find(".root:");
+    if( separator == std::string::npos ){ return {path_, "", false}; }
+    return {path_.substr(0, separator + 5), path_.substr(separator + 6), true};
+  }
+
   template<typename T> auto fetchObject(const std::string& objectPath_) -> T*{
 
     GTLogThrowIf( objectPath_.empty(), "No object path provided." );
 
     // example: objectPath_ = "/path/to/tfile.root:my/dir/object"
-    auto pathElements = GenericToolbox::splitString(objectPath_, ":");
-    GTLogThrowIf(pathElements.size() < 2, "Could not parse path: " + objectPath_);
+    const auto path = parseRootObjectPath(objectPath_);
+    GTLogThrowIf(not path.hasObjectPath or path.objectPath.empty(), "Could not parse path: " + objectPath_);
 
-    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, -1 ) };
-    std::string rootObjectPath{ pathElements[int(pathElements.size())-1] };
+    std::string rootFilePath{path.filePath};
+    const std::string& rootObjectPath = path.objectPath;
 
     rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
 
