@@ -326,18 +326,16 @@ CPP_GENERIC_TOOLBOX_ROOT_INLINE void enableSelectedBranches(TTree* tree_, TTreeF
   }
 
 CPP_GENERIC_TOOLBOX_ROOT_INLINE TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_) {
-    TFile* outPtr{nullptr};
+    // Let ROOT resolve local paths and remote URLs alike.
+    std::unique_ptr<TFile> outPtr;
 
-    if( not isFile(inputFilePath_) ){
-      throw std::runtime_error("Could not find file: \"" + inputFilePath_ + "\"");
-    }
     auto old_verbosity = gErrorIgnoreLevel;
     gErrorIgnoreLevel  = kFatal;
     gEnv->SetValue("TFile.Recover", 0);
-    outPtr = TFile::Open(inputFilePath_.c_str(), "READ");
+    outPtr.reset(TFile::Open(inputFilePath_.c_str(), "READ"));
     gErrorIgnoreLevel = old_verbosity;
 
-    if( not doesTFileIsValid(outPtr) ){
+    if( not doesTFileIsValid(outPtr.get()) ){
       throw std::runtime_error("Invalid TFile: \"" + inputFilePath_ + "\"");
     }
 
@@ -347,29 +345,28 @@ CPP_GENERIC_TOOLBOX_ROOT_INLINE TFile* openExistingTFile(const std::string &inpu
       }
     }
 
-    return outPtr;
+    return outPtr.release();
   }
 
 CPP_GENERIC_TOOLBOX_ROOT_INLINE bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_) {
     bool fileIsValid = false;
     gEnv->SetValue("TFile.Recover", 0);
-    if(isFile(inputFilePath_)) {
-      auto old_verbosity = gErrorIgnoreLevel;
-      gErrorIgnoreLevel  = kFatal;
-      auto* tfileCandidatePtr  = TFile::Open(inputFilePath_.c_str(), "READ");
-      if(doesTFileIsValid(tfileCandidatePtr)) {
-        fileIsValid = true;
-        for( const auto& objectPath : objectListToCheck_ ){
-          if(tfileCandidatePtr->Get(objectPath.c_str()) == nullptr ){
-            fileIsValid = false;
-            break;
-          }
+    // A local filesystem check would reject URLs before ROOT can open them.
+    auto old_verbosity = gErrorIgnoreLevel;
+    gErrorIgnoreLevel  = kFatal;
+    auto* tfileCandidatePtr  = TFile::Open(inputFilePath_.c_str(), "READ");
+    if(doesTFileIsValid(tfileCandidatePtr)) {
+      fileIsValid = true;
+      for( const auto& objectPath : objectListToCheck_ ){
+        if(tfileCandidatePtr->Get(objectPath.c_str()) == nullptr ){
+          fileIsValid = false;
+          break;
         }
-        tfileCandidatePtr->Close();
       }
-      delete tfileCandidatePtr;
-      gErrorIgnoreLevel = old_verbosity;
+      tfileCandidatePtr->Close();
     }
+    delete tfileCandidatePtr;
+    gErrorIgnoreLevel = old_verbosity;
     return fileIsValid;
   }
 
