@@ -1595,6 +1595,10 @@ CPP_GENERIC_TOOLBOX_ROOT_INLINE void TreeBuffer::FormulaExpression::notify(TTree
 
 CPP_GENERIC_TOOLBOX_ROOT_INLINE void TreeBuffer::FormulaExpression::save(const uint8_t* src_) {
     // src_ will be ignored since there is no buffer in that case
+    // Refresh variable-length array dimensions for the current entry. In
+    // particular, a file transition can leave an indexed formula using the
+    // preceding tree's dimensions and return NaN for a valid array element.
+    _formulaPtr_->GetNdata();
     double buffer = _formulaPtr_->EvalInstance(0);
     std::memcpy(
       _buffer_.getPlaceHolderPtr()->getVariableAddress(),
